@@ -1,46 +1,41 @@
-package com.example.myapplication
+package com.example.myapplication.lab8
 
+import Screen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DiceRollerApp()
+            MyNavigation()
         }
     }
 }
+
 
 @Composable
-fun DiceRollerApp() {
-    var result by remember { mutableStateOf(1) }
+fun MyNavigation() {
+    val navController = rememberNavController()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    NavHost(
+        navController = navController,
+        startDestination = Screen.SignIn.rout
     ) {
-        Text(
-            text = "Kết quả: $result",
-            fontSize = 30.sp
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(onClick = {
-            result = (1..6).random()
-        }) {
-            Text("Roll Dice")
+        composable(Screen.SignIn.rout) {
+            SignIn(navController = navController)
+        }
+        composable(Screen.Home.rout) {
+            HomeScreen(navController = navController)
+        }
+        composable(Screen.SignUp.rout) {
+            SignUp(navController = navController)
         }
     }
 }
+
