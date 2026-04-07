@@ -1,9 +1,9 @@
 package com.example.myapplication.lab8
 
-import Screen
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -34,7 +37,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 @Composable
 fun SignIn(navController: NavController) {
     val context = LocalContext.current
-    // Lưu trữ trạng thái của ô nhập liệu
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -72,11 +74,18 @@ fun SignIn(navController: NavController) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().fillMaxSize()
+            .background(brush = Brush.verticalGradient(
+                colors = listOf(
+                    Color(0xFF8EC5FC),
+                    Color(0xFFE0C3FC)
+                )
+            ))
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Đăng Nhập", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Đăng Nhập", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.Blue)
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -94,15 +103,34 @@ fun SignIn(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            // Code sự kiện Click theo tài liệu Lab
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 firebaseAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            // Đăng nhập thành công
-                            navController.navigate(Screen.Home.rout)
+                            val uid = firebaseAuth.currentUser?.uid
+                            if (uid != null) {
+                                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                db.collection("Users").document(uid).get()
+                                    .addOnSuccessListener { document ->
+                                        if (document.exists()) {
+                                            val role = document.getString("role")
+                                            if (role == "admin") {
+                                                Toast.makeText(context, "Chào mừng Admin", Toast.LENGTH_SHORT).show()
+                                                navController.navigate(Screen.Home.rout)
+                                            } else {
+                                                Toast.makeText(context, "Đăng nhập quyền User", Toast.LENGTH_SHORT).show()
+                                                navController.navigate("UserScreen")
+                                            }
+                                        } else {
+                                            navController.navigate("UserScreen")
+                                        }
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Lỗi kiểm tra quyền: ${it.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+
                         } else {
-                            // Đăng nhập thất bại, báo lỗi
                             Toast.makeText(context, task.exception?.message.toString(), Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -114,7 +142,6 @@ fun SignIn(navController: NavController) {
         }
 
         Button(onClick = {
-            // Kích hoạt bảng chọn tài khoản Google hiện lên
             launcher.launch(googleSignInClient.signInIntent)
         }) {
             Text("Đăng nhập bằng Google")

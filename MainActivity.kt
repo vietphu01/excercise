@@ -1,6 +1,5 @@
 package com.example.myapplication.lab8
 
-import Screen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +31,9 @@ fun MyNavigation() {
         }
         composable(Screen.Home.rout) {
             HomeScreen(navController = navController)
+        }
+        composable(Screen.UserScreen.rout) {
+            UserScreen(navController = navController)
         }
         composable(Screen.SignUp.rout) {
             SignUp(navController = navController)
